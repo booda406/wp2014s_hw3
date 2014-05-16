@@ -61,8 +61,20 @@
           }
       	});
       	// 綁定註冊表單的密碼檢查事件(); // 參考上課範例
-       
+       document.getElementById('form-signin').addEventListener('submit', function(){
+          var student_id = document.getElementById('form-signin-student-id');
+          if(!_isMemberOf(student_id)){
+            document.getElementById('form-signin-message').innerHTML = '不是有效的課程學生。';
+          }
+        });
         // 綁定登入表單的學號檢查事件(); // 可以利用TAHelp物件
+        document.getElementById('form-signup').addEventListener('submit', function(){
+          var student_id = document.getElementById('form-signup-student-id');
+          if(!TAHelp.isVaildStudentID(student_id)){
+            document.getElementById('form-signup-message').innerHTML = '不是有效的Student ID。';
+          }
+
+        });
         // 綁定註冊表單的學號檢查事件(); // 可以利用TAHelp物件
         document.getElementById('form-signin').addEventListener('submit', function(){
           Parse.User.logIn(document.getElementById('form-signin-student-id').value,
@@ -71,7 +83,7 @@
               postAction();
             },
             error: function(user, error) {
-            
+              document.getElementById('form-signin-message').innerHTML = error.message + '['+error.code+']';
             }
           }); 
         });
@@ -84,7 +96,7 @@
               postAction();
             },
             error: function(user, error) {
-            
+              document.getElementById('form-signup-message').innerHTML = error.message + '['+error.code+']';
             }
           }); 
         });
