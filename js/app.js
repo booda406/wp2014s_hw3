@@ -28,14 +28,14 @@
       }
       document.getElementById('logoutButton').addEventListener('click', function(){
         Parse.User.logOut();
-        handlers.navbar();
+        handler.navbar();
         window.location.hash = '';
       });
     },
     login: function(){
       var current_user = Parse.User.current();
       var postAction = function(){
-        handlers.navbar();
+        handler.navbar();
         window.location.hash = (redirect) ? redirect : '';
       }
       if (current_user) {
@@ -45,37 +45,37 @@
         document.getElementById('content').innerHTML = templates.loginView();
       	// 把版型印到瀏覽器上();
 
-        // Signup Form Password Match Check Binding.
+        // 綁定註冊表單的密碼檢查事件(); // 參考上課範例
         document.getElementById('form-signup-password1').addEventListener('keyup', function(){
           var singupForm_password = document.getElementById('form-signup-password');
-          var message = (this.value !== singupForm_password.value) ? '密碼不一致，請再確認一次。' : '';
-          document.getElementById('form-signup-message').innerHTML = message;           
-        });
-        // Signup Function binding, provided by Parse SDK.
-        document.getElementById('form-signup').addEventListener('submit', function(){
-          var singupForm_password = document.getElementById('form-signup-password');
-          var singupForm_password1 = document.getElementById('form-signup-password1');
-          if(singupForm_password.value !== singupForm_password1.value){
-            document.getElementById('form-signup-message').innerHTML = '密碼不一致，請再確認一次。';      
-            return false; 
-          }
-      	});
-      	// 綁定註冊表單的密碼檢查事件(); // 參考上課範例
-       document.getElementById('form-signin').addEventListener('submit', function(){
-          var student_id = document.getElementById('form-signin-student-id');
-          if(!_isMemberOf(student_id)){
-            document.getElementById('form-signin-message').innerHTML = '不是有效的課程學生。';
+          var message = (this.value !== singupForm_password.value) ? '密碼不一樣啦，認真點好嗎？' : '';
+          document.getElementById('form-signup-message').style.display = 'block';     
+          document.getElementById('form-signup-message').innerHTML = message;  
+          if(this.value === singupForm_password.value){
+             document.getElementById('form-signup-message').style.display = 'none';     
           }
         });
-        // 綁定登入表單的學號檢查事件(); // 可以利用TAHelp物件
+       
+        // 綁定登入表單的學號檢查事件(); // 可以利用TAHelp物件  
+        document.getElementById('form-signin').addEventListener('submit', function(){
+          var student_id = document.getElementById('form-signin-student-id').value;
+          if(!TAHelp._isMemberOf(student_id)){
+            document.getElementById('form-signin-message').style.display = 'block';     
+            document.getElementById('form-signin-message').innerHTML = '你在亂試，我就打爆你。';
+          }
+        });
+        
+        // 綁定註冊表單的學號檢查事件(); // 可以利用TAHelp物件
         document.getElementById('form-signup').addEventListener('submit', function(){
-          var student_id = document.getElementById('form-signup-student-id');
-          if(!TAHelp.isVaildStudentID(student_id)){
-            document.getElementById('form-signup-message').innerHTML = '不是有效的Student ID。';
+          var student_id = document.getElementById('form-signup-student-id').value;
+          if(!TAHelp._isMemberOf(student_id)){
+            alert('你走錯房間了吧？我們沒你這學生。');
+            window.location.hash = '';
           }
 
         });
-        // 綁定註冊表單的學號檢查事件(); // 可以利用TAHelp物件
+
+        // 綁定登入表單的登入檢查事件(); // 送出還要再檢查一次，這裡會用Parse.User.logIn
         document.getElementById('form-signin').addEventListener('submit', function(){
           Parse.User.logIn(document.getElementById('form-signin-student-id').value,
               document.getElementById('form-signin-password').value, {
@@ -83,25 +83,13 @@
               postAction();
             },
             error: function(user, error) {
-              document.getElementById('form-signin-message').innerHTML = error.message + '['+error.code+']';
+              document.getElementById('form-signin-message').innerHTML = error.message;
             }
           }); 
         });
-        // 綁定登入表單的登入檢查事件(); // 送出還要再檢查一次，這裡會用Parse.User.logIn
-        document.getElementById('form-signup').addEventListener('submit', function(){
-          Parse.User.signUp(document.getElementById('form-signup-student-id').value,
-              document.getElementById('form-signup-password').value, 
-              document.getElementById('form-signup-email').value, {
-            success: function(user) {
-              postAction();
-            },
-            error: function(user, error) {
-              document.getElementById('form-signup-message').innerHTML = error.message + '['+error.code+']';
-            }
-          }); 
-        });
+
         // 綁定註冊表單的註冊檢查事件(); // 送出還要再檢查一次，這裡會用Parse.User.signUp和相關函數
-       
+        document.getElementById('form-signup').addEventListener('submit', function(){
           var user = new Parse.User();
           user.set("username", document.getElementById('form-signup-student-id').value);
           user.set("password", document.getElementById('form-signup-password').value);
@@ -117,65 +105,81 @@
               document.getElementById('form-signup-message').innerHTML = error.message + '['+error.code+']';
             }
           });
-		}
+
+
+          // var user = new Parse.User();
+          // user.set("username", document.getElementById('form-signup-student-id').value);
+          // user.set("password", document.getElementById('form-signup-password').value);
+          // user.set("email", document.getElementById('form-signup-email').value);
+
+          // Parse.User.signUp(document.getElementById('form-signup-student-id').value,
+          //     document.getElementById('form-signup-password').value, 
+          //     document.getElementById('form-signup-email').value, {
+          //   success: function(user) {
+          //     postAction();
+          //   },
+          //   error: function(user, error) {
+          //     document.getElementById('form-signup-message').style.display = 'block';
+          //     document.getElementById('form-signup-message').innerHTML = error.message;
+          //   }
+          // }); 
+        });
+       
+        }
     },
     evaluation: function(object){
-      var current_user = Parse.User.current();      
-      if (currentUser) {
-        var Order = Parse.Object.extend("Order");
-        var query = new Parse.Query(Order);
-        query.equalTo('user', currentUser);
-        // Let the query return results along with relational data.
-        query.include('dress');
-        query.find({
-          success: function(results){
-            var objList = results.map(function(e){ 
-              return {
-                'dressId': e.get('dress').id,
-                'amount': e.get('amount'),
-                'name': e.get('dress').get('name'),
-                'previewUrl': e.get('dress').get('previewUrl'),                
+      // t = evaluation n = current_user r = access
+          var evaluation = Parse.Object.extend("Evaluation");
+          var current_user = Parse.User.current();
+          var access = new Parse.ACL;
+          access.setPublicReadAccess(false);
+          access.setPublicWriteAccess(false);
+          access.setReadAccess(current_user, true);
+          access.setWriteAccess(current_user, true);
+          // i = tmp_evaluation
+          var tmp_evaluation = new Parse.Query(evaluation);
+          tmp_evaluation.equalTo("user",current_user);
+          tmp_evaluation.first({
+            success: function(tmp_evaluation){
+            window.EVAL = tmp_evaluation;
+            if(tmp_evaluation === undefined){
+              var s = TAHelp.getMemberlistOf(current_user.get("username")).filter(function(e){
+                return e.StudentId !== current_user.get("username") ? true : false
+              }).map(function(e){
+                e.scores = ["0","0","0","0"];
+                return e
+              })
+            }else{
+              var s = tmp_evaluation.toJSON().evaluations
+            }
+            document.getElementById("content").innerHTML = e.evaluationView(s);
+            document.getElementById("evaluationForm-submit").value = tmp_evaluation === undefined ? "送出表單" : "修改表單";
+            document.getElementById("evaluationForm").addEventListener("submit",function(){
+              for(var o = 0; o < s.length; o++){
+                for(var u = 0; u < s[o].scores.length; u++){
+                  var a = document.getElementById("stu" + s[o].StudentId + "-q" + u);
+                  var f = a.options[a.selectedIndex].value;s[o].scores[u] = f
+                }
               }
-            });
-            document.getElementById('content').innerHTML = templates.mycartTemplate(objList);
-            results.forEach(function(e){
-              var changeAmount = document.getElementById('change_amount_'+e.get('dress').id);
-              changeAmount.addEventListener('change', function(){
-                var amount = parseInt(this.options[this.selectedIndex].value);
-                myCart.setAmountTo(currentUser, e.get('dress'), amount, function(){});
-              });
-              var cancelOrderBtn = document.getElementById('cancel_order_'+e.get('dress').id);
-              cancelOrderBtn.addEventListener('click', function(){
-                myCart.setAmountTo(currentUser, e.get('dress'), 0, function(){
-                  if (cancelOrderBtn.parentNode.parentNode.childElementCount === 1){
-                    handlers.mycart();
-                  } else {
-                    cancelOrderBtn.parentNode.remove();
+                if(tmp_evaluation === undefined){
+                  tmp_evaluation = new evaluation;
+                  tmp_evaluation.set("user",current_user);
+                  tmp_evaluation.setACL(r)
+                }
+                  console.log(s);
+                  tmp_evaluation.set("evaluations",s);
+                  tmp_evaluation.save(null,{success: function(){
+                    document.getElementById("content").innerHTML = e.updateSuccessView();
+                  },
+                  error: function(){
+
                   }
-                });
-              });
-            });
-            // Easter Egg!!!
-            document.getElementById('payButton').parentNode.addEventListener('click', function(){
-              // Toogle Effect
-              if( this.childElementCount === 1){
-                var YTcode = '<iframe width="960" height="517" ' +
-                  'src="https://www.youtube-nocookie.com/embed/NkQc4FXCvtA?autoplay=1&rel=0&iv_load_policy=3"' +
-                  ' frameborder="0" allowfullscreen></iframe>';
-                this.innerHTML += YTcode;
-              } else {
-                this.children[1].remove();
-              }
-              return false
-            });
-          },
-          error: function(error){
-          
-          },
-        });
-      } else {
-        window.location.hash = 'login/'+ window.location.hash;
-      }
+                })
+                },
+                false
+                )},
+            error: function(e,evaluation){}
+          })
       // 基本上和上課範例購物車的函數很相似，這邊會用Parse DB
       // 問看看Parse有沒有這個使用者之前提交過的peer review物件(
       // 沒有的話: 從TAHelp生一個出來(加上scores: [‘0’, ‘0’, ‘0’, ‘0’]屬性存分數並把自己排除掉)
@@ -185,11 +189,17 @@
   };
   var App = Parse.Router.extend({
     routes: {
-      '': 'login',
+      '': 'index',
       'login': 'login',
       'peer-evaluation': 'evaluation'
     },
-    // If frontpage is requested, show the first page of catalog.
+    index: function(){
+      if(Parse.User.current()){
+        window.location.hash = "evaluation/"
+      }else{
+        window.location.hash = "login/"
+      }
+    },
     evaluation: handler.evaluation,
     login: handler.login
   });
