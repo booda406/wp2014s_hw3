@@ -29,17 +29,17 @@
       document.getElementById('logoutButton').addEventListener('click', function(){
         Parse.User.logOut();
         handler.navbar();
-        window.location.hash = '';
+        window.location.hash = 'login/';
       });
     },
     login: function(){
       var current_user = Parse.User.current();
       var postAction = function(){
         handler.navbar();
-        window.location.hash = (redirect) ? redirect : '';
+        window.location.hash = 'peer-evaluation/';
       }
       if (current_user) {
-        window.location.hash = '';
+        window.location.hash = 'peer-evaluation/';
       } else {
         // Signin Function binding, provided by Parse SDK.        
         document.getElementById('content').innerHTML = templates.loginView();
@@ -83,6 +83,7 @@
               postAction();
             },
             error: function(user, error) {
+              document.getElementById('form-signin-message').style.display = 'block';     
               document.getElementById('form-signin-message').innerHTML = error.message;
             }
           }); 
@@ -102,7 +103,8 @@
             },
             error: function(user, error) {
               // Show the error message somewhere and let the user try again.
-              document.getElementById('form-signup-message').innerHTML = error.message + '['+error.code+']';
+              document.getElementById('form-signup-message').style.display = 'block';     
+              document.getElementById('form-signup-message').innerHTML = error.message;
             }
           });
 
@@ -143,17 +145,16 @@
             success: function(tmp_evaluation){
             window.EVAL = tmp_evaluation;
             if(tmp_evaluation === undefined){
-              var s = TAHelp.getMemberlistOf(current_user.get("username")).filter(function(e){
-                return e.StudentId !== current_user.get("username") ? true : false
-              }).map(function(e){
+              var s = TAHelp.getMemberlistOf(current_user.get("username")).filter(function(e){return e.StudentId !== current_user.get("username") ? true : false}).map(function(e){
                 e.scores = ["0","0","0","0"];
                 return e
               })
             }else{
               var s = tmp_evaluation.toJSON().evaluations
             }
-            document.getElementById("content").innerHTML = e.evaluationView(s);
-            document.getElementById("evaluationForm-submit").value = tmp_evaluation === undefined ? "送出表單" : "修改表單";
+            document.getElementById("content").innerHTML = templates.evaluationView(s);
+            var action = tmp_evaluation === undefined ? "送出表單" : "修改表單";
+            document.getElementById("evaluationForm-submit").value = action;
             document.getElementById("evaluationForm").addEventListener("submit",function(){
               for(var o = 0; o < s.length; o++){
                 for(var u = 0; u < s[o].scores.length; u++){
@@ -164,12 +165,11 @@
                 if(tmp_evaluation === undefined){
                   tmp_evaluation = new evaluation;
                   tmp_evaluation.set("user",current_user);
-                  tmp_evaluation.setACL(r)
+                  tmp_evaluation.setACL(access);
                 }
-                  console.log(s);
                   tmp_evaluation.set("evaluations",s);
                   tmp_evaluation.save(null,{success: function(){
-                    document.getElementById("content").innerHTML = e.updateSuccessView();
+                    document.getElementById("content").innerHTML = templates.updateSuccessView();
                   },
                   error: function(){
 
@@ -190,12 +190,12 @@
   var App = Parse.Router.extend({
     routes: {
       '': 'index',
-      'login': 'login',
-      'peer-evaluation': 'evaluation'
+      'login/': 'login',
+      'peer-evaluation/': 'evaluation'
     },
     index: function(){
       if(Parse.User.current()){
-        window.location.hash = "evaluation/"
+        window.location.hash = "peer-evaluation/"
       }else{
         window.location.hash = "login/"
       }
