@@ -40,6 +40,8 @@
           Evaluation</a>
           </li>
 
+          <li id="scoreboardButton"><a href="#scoreboard/">分數版</a></li>
+
           <li id="logoutButton"><a href="#">Logout</a>
           </li>
         </ul>
@@ -177,6 +179,27 @@
       <script id="updateSuccessView" type="text/x-dot-template">
         <div class="starter-template">
           您的提交已送出，請記得登出系統。<br />謝謝您的使用。
+        </div>
+      </script>
+      <script id="scoreboardView" type="text/x-dot-template">
+        <div class="row">
+          <br />
+        
+        <div class="col-md-12">
+          {{~it :member:index}}
+          <div>
+            <h1>{{=member.name}}</h1>
+                <h3>Cooperation</h3>
+                {{=member.scores[0]}}
+                <h3>Participation</h3>
+                {{=member.scores[1]}}
+                <h3>Quality of work</h3>
+                {{=member.scores[2]}}
+                <h3>Contribution of the overall group</h3>
+                {{=member.scores[3]}}
+          </div>
+          {{~}}
+        </div>
         </div>
       </script>
       <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>

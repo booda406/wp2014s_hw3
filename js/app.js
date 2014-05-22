@@ -4,7 +4,7 @@
  // 初始化Parse();
 
   var templates = {};
-  ['loginView', 'evaluationView', 'updateSuccessView'].forEach(function(e){
+  ['loginView', 'evaluationView', 'updateSuccessView', 'scoreboardView'].forEach(function(e){
     var tpl = document.getElementById(e).text;
     templates[e] = doT.template(tpl);
   });
@@ -18,11 +18,13 @@
       if(current_user){
         document.getElementById('loginButton').style.display = 'none';
         document.getElementById('evaluationButton').style.display = 'block';
+        document.getElementById('scoreboardButton').style.display = 'block';
         document.getElementById('logoutButton').style.display = 'block';
         // 顯示哪些button();
       } else {
         document.getElementById('loginButton').style.display = 'block';
         document.getElementById('evaluationButton').style.display = 'none';
+        document.getElementById('scoreboardButton').style.display = 'none';
         document.getElementById('logoutButton').style.display = 'none';   
         // 顯示哪些button();      
       }
@@ -37,6 +39,7 @@
       var postAction = function(){
         handler.navbar();
         window.location.hash = 'peer-evaluation/';
+        handler.evaluation();
       }
       if (current_user) {
         window.location.hash = 'peer-evaluation/';
@@ -84,7 +87,7 @@
             },
             error: function(user, error) {
               document.getElementById('form-signin-message').style.display = 'block';     
-              document.getElementById('form-signin-message').innerHTML = error.message;
+              document.getElementById('form-signin-message').innerHTML = "才幾歲...就忘記密碼＝＝＋";
             }
           }); 
         });
@@ -152,6 +155,7 @@
             }else{
               var s = tmp_evaluation.toJSON().evaluations
             }
+            console.log(s);
             document.getElementById("content").innerHTML = templates.evaluationView(s);
             var action = tmp_evaluation === undefined ? "送出表單" : "修改表單";
             document.getElementById("evaluationForm-submit").value = action;
@@ -186,12 +190,41 @@
       // 把peer review物件裡的東西透過版型印到瀏覽器上();
       // 綁定表單送出的事件(); // 如果Parse沒有之前提交過的peer review物件，要自己new一個。或更新分數然後儲存。
     },
+    scoreboard: function(){
+      var Score = Parse.Object.extend("Evaluation");
+      var query = new Parse.Query(Score);
+      // StudentId
+      // scores
+      for (var i = 1; i < TAHelp._Memberlist.length; i++) {
+        for (var j = 0; j < TAHelp._Memberlist[i].length; j++) {
+          query.equalTo("evaluations", TAHelp._Memberlist[i][j].StudentId);
+          query.find({
+            success: function(results) {
+              // alert("Successfully retrieved " + results.length + " scores.");
+              // Do something with the returned Parse.Object values
+              for (var i = 0; i < results.length; i++) { 
+                var object = results[i];
+                // alert(object.id + ' - ' + object.get('evaluations'));
+                var s = object.toJSON().evaluations
+                // console.log(s);
+                document.getElementById("content").innerHTML = templates.scoreboardView(s);
+              }
+            },
+            error: function(error) {
+              alert("Error: " + error.code + " " + error.message);
+            }
+          });
+        };
+      };
+
+    },
   };
   var App = Parse.Router.extend({
     routes: {
       '': 'index',
       'login/': 'login',
-      'peer-evaluation/': 'evaluation'
+      'peer-evaluation/': 'evaluation',
+      'scoreboard/': 'scoreboard'
     },
     index: function(){
       if(Parse.User.current()){
@@ -201,7 +234,8 @@
       }
     },
     evaluation: handler.evaluation,
-    login: handler.login
+    login: handler.login,
+    scoreboard: handler.scoreboard
   });
 
   this.Router = new App();
