@@ -209,7 +209,7 @@
                 // alert(object.id + ' - ' + object.get('evaluations'));
                 // console.log(object.toJSON().evaluations)
                 s = s.concat(object.toJSON().evaluations);
-                console.log(s);
+                // console.log(s);
               }
               s.sort(function(a,b){
                 if (a.StudentId > b.StudentId)
@@ -217,24 +217,33 @@
                 if (a.StudentId < b.StudentId)
                   return -1;
                 // a must be equal to b
-                else{
-                  for(var i = 0 ; i < 4 ; i++){
-                    a.scores[i] = parseInt(a.scores[i]) + parseInt(b.scores[i]);
-                  }
+                // else{
+                //   for(var i = 0 ; i < 4 ; i++){
+                //     a.scores[i] = parseInt(a.scores[i]) + parseInt(b.scores[i]);
+                //   }
                   return 0;
-                }
+                // }
               });
-              // var uniqueNames = [];
-              // for (var i = 0; i < s.length; i++) {
-              //   if(s[i].StudentId == s[i+1].StudentId){
-              //     uniqueNames.push(s[i]);
-              //     while
-              //   }
-              // };
+              var uniqueNames = [];
+              var n = 1;
+              for (var i = 0; i < s.length; i++) {
+                while(s[i+n].StudentId == s[i].StudentId){
+                    for(var j = 0 ; j < 4 ; j++){
+                      s[i].scores[j] = parseInt(s[i].scores[j]) + parseInt(s[i+n].scores[j]);
+                    }
+                      n = n + 1;
+                      if(i+n==s.length)break;
+                }
+                  uniqueNames.push(s[i]);
+                  i = i + n - 1;
+                  n = 1;
+                  // var index = s.indexOf(s[i+1]);
+                  // s.splice(index, 1);
+              };
               // $.each(s, function(i, el){
               //     if(i.StudentId !== el.StudentId) uniqueNames.push(el);
               // });
-              document.getElementById("content").innerHTML = templates.scoreboardView(s);
+              document.getElementById("content").innerHTML = templates.scoreboardView(uniqueNames);
             },
             error: function(error) {
               alert("Error: " + error.code + " " + error.message);
