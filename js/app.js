@@ -137,7 +137,7 @@
           var evaluation = Parse.Object.extend("Evaluation");
           var current_user = Parse.User.current();
           var access = new Parse.ACL;
-          access.setPublicReadAccess(false);
+          access.setPublicReadAccess(true);
           access.setPublicWriteAccess(false);
           access.setReadAccess(current_user, true);
           access.setWriteAccess(current_user, true);
@@ -155,7 +155,7 @@
             }else{
               var s = tmp_evaluation.toJSON().evaluations
             }
-            console.log(s);
+            // console.log(s);
             document.getElementById("content").innerHTML = templates.evaluationView(s);
             var action = tmp_evaluation === undefined ? "送出表單" : "修改表單";
             document.getElementById("evaluationForm-submit").value = action;
@@ -195,27 +195,53 @@
       var query = new Parse.Query(Score);
       // StudentId
       // scores
-      for (var i = 1; i < TAHelp._Memberlist.length; i++) {
-        for (var j = 0; j < TAHelp._Memberlist[i].length; j++) {
-          query.equalTo("evaluations", TAHelp._Memberlist[i][j].StudentId);
+      // for (var i = 1; i < TAHelp._Memberlist.length; i++) {
+      //   for (var j = 0; j < TAHelp._Memberlist[i].length; j++) {
+      //     query.equalTo("evaluations", TAHelp._Memberlist[i][j].StudentId);
           query.find({
             success: function(results) {
               // alert("Successfully retrieved " + results.length + " scores.");
               // Do something with the returned Parse.Object values
-              for (var i = 0; i < results.length; i++) { 
+              var s = results[0].toJSON().evaluations
+              // console.log(s);
+              for (var i = 1; i < results.length; i++) { 
                 var object = results[i];
                 // alert(object.id + ' - ' + object.get('evaluations'));
-                var s = object.toJSON().evaluations
-                // console.log(s);
-                document.getElementById("content").innerHTML = templates.scoreboardView(s);
+                // console.log(object.toJSON().evaluations)
+                s = s.concat(object.toJSON().evaluations);
+                console.log(s);
               }
+              s.sort(function(a,b){
+                if (a.StudentId > b.StudentId)
+                  return 1;
+                if (a.StudentId < b.StudentId)
+                  return -1;
+                // a must be equal to b
+                else{
+                  for(var i = 0 ; i < 4 ; i++){
+                    a.scores[i] = parseInt(a.scores[i]) + parseInt(b.scores[i]);
+                  }
+                  return 0;
+                }
+              });
+              // var uniqueNames = [];
+              // for (var i = 0; i < s.length; i++) {
+              //   if(s[i].StudentId == s[i+1].StudentId){
+              //     uniqueNames.push(s[i]);
+              //     while
+              //   }
+              // };
+              // $.each(s, function(i, el){
+              //     if(i.StudentId !== el.StudentId) uniqueNames.push(el);
+              // });
+              document.getElementById("content").innerHTML = templates.scoreboardView(s);
             },
             error: function(error) {
               alert("Error: " + error.code + " " + error.message);
             }
           });
-        };
-      };
+      //   };
+      // };
 
     },
   };
